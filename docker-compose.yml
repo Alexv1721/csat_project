@@ -19,14 +19,8 @@ services:
     restart: always
     depends_on:
       - db
-    environment:
-      DB_URL: "mysql+pymysql://root:alexv@db:3306/gforms"
-      SECRET_KEY: supersecretkey
-      ALGORITHM: HS256
-      ACCESS_TOKEN_EXPIRE_MINUTES: 60
-
-      AWS_BUCKET_NAME: gforms2106
-      AWS_REGION: ap-south-1
+    env_file:
+      - .env
     ports:
       - "8000:8000"
     volumes:
@@ -34,7 +28,4 @@ services:
 
 volumes:
   db_data:
-
-env_file:
-  - .env
 
