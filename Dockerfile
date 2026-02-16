@@ -1,24 +1,31 @@
-FROM python:3.11-slim
+# Use official Python image
+FROM python:3.12-slim
 
-# Install system dependencies for building mysqlclient
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    default-libmysqlclient-dev \
-    libssl-dev \
-    pkg-config \
-    && rm -rf /var/lib/apt/lists/*
-
+# Set work directory
 WORKDIR /app
 
-# Copy requirements first (cached if unchanged)
-COPY requirements.txt .
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpq-dev \
+    default-libmysqlclient-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Upgrade pip and install Python dependencies
-RUN pip install --upgrade pip
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy poetry files
+COPY pyproject.toml poetry.lock* /app/
 
-# Copy the rest of the app
-COPY . .
+# Install poetry
+RUN pip install --no-cache-dir "poetry>=2.0"
 
-# Command to run FastAPI
+# Install dependencies via poetry
+RUN poetry config virtualenvs.create false \
+    && poetry install --no-root --no-dev
+
+# Copy project
+COPY . /app
+
+# Expose port
+EXPOSE 8000
+
+# Run FastAPI
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
